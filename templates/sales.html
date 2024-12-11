@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Sales</title>
+    <style>
+        .right-align {
+            text-align: right;
+        }
+        #product_select { 
+            height: 10px !important;
+        }
+        .select-placeholder {
+            width: 50rem !important;
+            height: 10px !important;
+        }
+        .input-small {
+            width: 80px !important;
+            margin-right: 10px !important;
+        }
+        .bootstrap-select .dropdown-menu a.dropdown-item:focus, .bootstrap-select .dropdown-menu a.dropdown-item:hover {
+            background-color: cyan !important;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+        .modal-content {
+            width: 50%;
+            margin: auto;
+        }
+        .close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: #000;
+            font-size: 28px;
+            font-weight: bold;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container" style="margin-top: 100px;">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="container">
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <form action="/save_sales" method="post">
+        <input name="invoice" id="invoiceInput" type="hidden" value="{{ invoice }}">
+        <table class="table table-bordered" id="resultTable" data-responsive="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Stock Available</th>
+                    <th>Buying Price</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="select-placeholder">
+                            <select data-live-search="true" class="selectpicker form-control" id="product_select">
+                                <option value="" disabled selected hidden>select product</option>
+                                {% for row in products %}
+                                <option value="{{ row.product_id }}" data-qty="{{ row.quantity }}" data-bpr="{{ row.o_price }}" data-pr="{{ row.o_price * row.markup }}" data-batch="{{ row.batch_no }}" data-maxdisc="{{ row.maxdiscre }}" data-maxdiscpc="{{ row.maxdiscpr }}">
+                                    {{ row.gen_name }} - {{ row.product_code }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </td>
+                    <input type="hidden" name="product">
+                    <input type="hidden" name="batch" id="batch_no" value="">
+                    <td><input type="number" value="" name="qty" max="" id="qty" class="input-small"></td>
+                    <td><input type="number" name="stock_available" id="stock_available" readonly class="input-small"></td>
+                    <td><input type="number" name="o_price" id="o_price" readonly class="input-small"></td>
+                    <td><input type="number" name="price" id="price" class="input-small"></td>
+                    <td><button class="btn btn-info" type="submit">Submit</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Generic Name</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Amount</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales_order_details %}
+            <tr>
+                <form action="/save_sale" method="post">
+                    <input type="hidden" name="batch" value="{{ sale.batch }}">
+                    <input type="hidden" name="transaction_id" value="{{ sale.transaction_id }}">
+                    <input type="hidden" name="product_id" value="{{ sale.product_id }}">
+                    <td>{{ sale.gen_name }}</td>
+                    <td>{{ sale.product_name }}</td>
+                    <td><input type="number" class="input-small" name="qty" value="{{ sale.qty }}" required></td>
+                    <td><input type="number" class="input-small" name="price" value="{{ sale.price }}" required></td>
+                    <td>{{ sale.amount }}</td>
+                    <td>
+                        <a href="delete_sale?transaction_id={{ sale.transaction_id }}&invoice={{ invoice }}">
+                            <button class="btn btn-danger" type="button">Delete</button>
+                        </a>
+                    </td>
+                </form>
+            </tr>
+            {% endfor %}
+            <tr>
+                <th>Total Amount:</th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th class="right-align">{{ total_amount }}</th>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if total_amount %}
+    <div class="container">
+        <button class="btn btn-success btn-large btn-block" type="submit">Save Sale</button>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.getElementById('product_select').addEventListener('change', function() {
+        var selectedOption = this.options[this.selectedIndex];
+        document.getElementById('qty').max = selectedOption.dataset.qty;
+        document.getElementById('price').min = selectedOption.dataset.bpr;
+        document.getElementById('stock_available').value = selectedOption.dataset.qty;
+        document.getElementById('o_price').value = selectedOption.dataset.bpr;
+        document.getElementById('batch_no').value = selectedOption.dataset.batch;
+        document.getElementById('price').value = Math.round(selectedOption.dataset.pr);
+        document.querySelector('input[name="product"]').value = selectedOption.value;
+    });
+</script>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        console.log(new FormData(this));
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var select = document.getElementById('select');
+        select.addEventListener('change', function() {
+            this.classList.remove('select-placeholder');
+        });
+    });
+</script>
+
+{% include 'footer.html' %}
+{% endblock %}

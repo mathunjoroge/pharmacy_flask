@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome/css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-select.min.css') }}">
+    <style>
+        /* Custom CSS styles for the "Welcome" and "Logout" elements */
+        #right .nav-link {
+            color: #ffff; /* Change the text color to white */
+            font-size: 16px; /* Adjust the font size */
+            margin-right: 10px; /* Add some margin between elements */
+        }
+
+        #right .nav-link:hover {
+            text-decoration: none; /* Remove underline on hover */
+        }
+
+        #right .nav-link i {
+            margin-right: 5px; /* Add some margin between icon and text */
+        }
+    </style>
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon">
+    {% block head %}{% endblock %}
+</head>
+<body style="background-image: url('{{ url_for('static', filename='img/double-bubble-outline.png') }}')">
+    <div class="navbar navbar-inverse navbar-fixed-top navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light">
+        <div class="navbar-inner">
+            <div class="container-fluid">
+                <a class="brand" href="/home">
+                    <img src="{{ url_for('static', filename='img/logo.PNG') }}" style="height:50px;">
+                </a>
+                <ul class="nav pull-right" id="right" style="font-size: 25px;">
+                    <i class="fa fa-user-check"></i> Welcome:<strong> {{ username }}</strong>
+                    <a href="/logout"><font color="red"><i class="fa fa-power-off"></i> </font> Log Out</a>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {% block body %}
+    {% endblock %}
+</body>
+</html>

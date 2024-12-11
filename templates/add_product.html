@@ -1,0 +1,98 @@
+<div class="container" id="product_modal" style="width: 80%!important;">
+  <form action="/save_product" method="post">
+    <center>
+      <h4><i class="icon-plus-sign icon-large"></i> Add Product</h4>
+    </center>
+    <hr>
+
+    <div class="form-group">
+      <label for="brand">Brand Name:</label>
+      <input type="text" class="form-control" name="brand" required>
+    </div>
+
+    <div class="form-group">
+      <label for="gen">Generic Name:</label>
+      <input type="text" class="form-control" name="gen" required>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category:</label>
+      <select name="category" id="categorySelect" class="form-control">
+        <option></option>
+        {% for category in categories %}
+          <option value="{{ category.id }}" data-cat="{{ category.id }}">{{ category.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <input type="" id="selectedCategoryId" value="" name="category_id">
+
+    <div class="form-group">
+      <label for="buying_price">Buying Price:</label>
+      <input type="number" class="form-control" name="buying_price" id="buying" required>
+    </div>
+
+    <div class="form-group">
+      <label for="selling_price">Selling Price:</label>
+      <input type="number" class="form-control" name="selling_price" id="selling" placeholder="" required>
+    </div>
+
+    <div class="form-group">
+      <label for="quantity">Quantity:</label>
+      <input type="number" class="form-control" min="0" name="quantity" required>
+    </div>
+
+    <div class="form-group">
+      <label for="level">Reorder Level:</label>
+      <input type="number" class="form-control" name="level">
+    </div>
+
+    <div class="form-group">
+      <label for="markup">Markup</label>
+      <input type="text" class="form-control" name="markup" id="markup" readonly>
+    </div>
+
+    <button type="submit" class="btn btn-success btn-block">
+      <i class="icon icon-save icon-large"></i> Save
+    </button>
+  </form>
+</div>
+<script type="text/javascript">
+    function handleModalShown() {
+  // Event listener for category selection changes
+  document.getElementById('categorySelect').addEventListener('change', function() {
+    // Get the selected category ID
+    const selectedCategoryId = this.value;
+
+    // Set the selected category ID to the hidden input field
+    document.getElementById('selectedCategoryId').value = selectedCategoryId;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  handleModalShown(); // Call handleModalShown function
+});
+
+document.getElementById("selling").addEventListener("change", calculateMarkup);
+document.getElementById("buying").addEventListener("change", calculateMarkup);
+
+function calculateMarkup() {
+  var buyingPrice = parseFloat(document.getElementById("buying").value);
+  var sellingPrice = parseFloat(document.getElementById("selling").value);
+
+  if (isNaN(buyingPrice) || isNaN(sellingPrice)) {
+    document.getElementById("markup").value = "";
+    return;
+  }
+
+  if (sellingPrice < buyingPrice) {
+    alert("Selling price cannot be lower than buying price.");
+    document.getElementById("selling").value = "";
+    document.getElementById("markup").value = "";
+  } else {
+    var markup = ((sellingPrice / buyingPrice) * 100).toFixed(2);
+    document.getElementById("markup").value = markup + "%";
+  }
+}
+
+</script>

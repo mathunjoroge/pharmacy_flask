@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Home</title>
+{% endblock %}
+
+{% block body %}
+<style type="text/css">
+            .container {
+            margin-top: 6.25rem;
+
+        }
+                .card {
+
+            text-align: center;
+            font-size: 2.5rem; /* Added size for card text */
+  
+        }
+        .card i {
+            margin-bottom: 0.5rem;
+            font-size: 5rem; /* Added size for icons */
+        }
+
+</style>
+<div class="container" style="">
+    <div style="font:bold 44px 'Aleo'; text-shadow:1px 1px 25px #000; color:green; text-align:center;">
+        {{ pharmacy_name }}
+    </div>
+
+    <div id="cards" class="container">
+        <div class="card">
+            <a href="{{ url_for('sales', invoice=invoice_number) }}">
+                <i class="fa fa-shopping-bag fa-2x"></i><br>
+                Sales
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('drugs') }}">
+                <i class="fa fa-medkit fa-2x"></i><br> <!-- Adjusted icon class -->
+                Drugs
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('customers') }}">
+                <i class="fa fa-users fa-2x"></i><br> <!-- Adjusted icon class -->
+                Customers
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('suppliers') }}">
+                <i class="fa fa-truck fa-2x"></i><br> <!-- Adjusted icon class -->
+                Suppliers
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('purchases', invoice=invoice_number) }}">
+                <i class="fa fa-shopping-cart fa-2x"></i><br> <!-- Adjusted icon class -->
+                Purchases
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('wholesale', invoice=invoice_number) }}">
+                <i class="fa fa-shopping-bag fa-2x"></i><br> <!-- Adjusted icon class -->
+                Wholesale
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('settings') }}">
+                <i class="fa fa-cog fa-2x"></i><br> <!-- Adjusted icon class -->
+                Settings
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('inventory') }}">
+                <i class="fa fa-cogs fa-2x"></i><br> <!-- Adjusted icon class -->
+                Inventory Adjustments
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('admin') }}">
+                <i class="fa fa-shield fa-2x"></i><br> <!-- Adjusted icon class -->
+                Admin
+            </a>
+        </div>
+    </div>
+</div>
+{% include 'footer.html' %} <!-- Include the footer -->
+{% endblock %}

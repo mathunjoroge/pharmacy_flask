@@ -1,0 +1,121 @@
+body {
+    background-color: #f8f9fa;
+  }
+  .login-container {
+    max-width: 600px;
+    margin: 100px auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+  }
+  .logo {
+    width: 530px;
+    height: 300px;
+    margin-bottom: 20px;
+  }
+   /* Define your custom styles here */
+    /* Adjust navbar-toggle icon-bar color */
+    .navbar-toggle .icon-bar {
+      background-color: black;
+  }
+  /* Hide the navbar-toggle button for larger screens */
+  .navbar-toggle {
+      display: none !important;
+  }
+  /* Responsive styles for smaller screens */
+  @media screen and (max-width: 980px) {
+      /* Adjust font size for the right-aligned content */
+      #right {
+          font-size: 2em;
+      }
+      /* Adjust card width and margin for smaller screens */
+      .card {
+          width: calc(90% - 40px);
+          margin: 10px;
+          height: 100px;
+          font-size: 2em;
+      }
+  }
+  /* Background image style */
+  body {
+    
+     
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+  }
+    /* Style for the footer */
+    #footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%; /* Set the width to 100% */
+      text-align: center; /* Align the content to the center */
+      background-color: #f8f9fa; /* Optional: Background color */
+  }
+  #cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    
+    }
+    
+            .card {
+              margin-top: 15px;
+                width: 300px;
+                height: 150px;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+                background-color: rgba(52, 168, 235);
+                text-align: center;
+                text-decoration: none;
+                color: inherit;
+                font-size: 30px;
+            }
+    
+            .card:hover {
+                background-color: rgb(52, 235, 177);
+            }
+    
+            .card a {
+                color: inherit;
+            }
+  .edit-btn, .delete-btn {
+    padding: 5px 10px;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-block; /* Display buttons inline */
+  }
+
+  .edit-btn {
+    background-color: #007bff; /* Blue color for edit button */
+  }
+
+  .delete-btn {
+    background-color: #dc3545; /* Red color for delete button */
+  }
+
+  .edit-btn:hover, .delete-btn:hover {
+    filter: brightness(1.2); /* Brighten on hover */
+  }
+
+  }
+  .navbar-inner {
+    color: white; /* Set the text color to white */
+}
+.navbar-inner {
+    color: white; /* Set text color to white */
+    background-color: rgb(52, 91, 235);
+     /* Set background color to blue */
+}
+
+.navbar-inner a {
+    color: white; /* Set link text color to white */
+}
+#right{
+  margin-right: 3rem;
+}

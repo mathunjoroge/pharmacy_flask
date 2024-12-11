@@ -1,0 +1,18 @@
+<div align="center" id="footer" class="container">
+    &copy; <span id="currentYear"></span> M&C. All Rights Reserved.
+    <div style="text-align: center; font-family: Arial, sans-serif; font-size: 16px; color: #333; margin: 0 auto;">
+        <p style="margin-bottom: 20px;">Contact <a href="mailto:admin@healthtecq.com" style="color: #007bff; text-decoration: none;">admin@healthtecq.com</a> for any queries.</p>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap-select.min.js') }}"></script>
+
+<!-- Add this script to dynamically set the current year -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var currentYear = new Date().getFullYear();
+        document.getElementById('currentYear').textContent = currentYear;
+    });
+</script>

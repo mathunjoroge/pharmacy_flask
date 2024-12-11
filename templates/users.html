@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Users</title>
+{% endblock %}
+
+{% block body %}
+<style>
+    .container {
+        overflow-x: auto;
+        margin-top: 5%;
+    }
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding-top: 60px;
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 30%;
+    }
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .alert {
+        padding: 10px;
+        background-color: #f44336;
+        color: white;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        position: relative;
+    }
+    .alert-dismissible .close {
+        position: absolute;
+        top: 0;
+        right: 10px;
+        color: white;
+        font-size: 20px;
+        line-height: 20px;
+        cursor: pointer;
+    }
+    .alert-dismissible .close {
+        position: relative;
+        top: -2px;
+        right: -21px;
+        color: inherit;
+    }
+    .alert-success {
+        color: green;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+</style>
+
+<div class="container">
+    <div style="margin-top: 100px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-dismissible {{ 'alert-' ~ category }} {% if message == 'User registered successfully!' %} success {% endif %}">
+                        <span class="close" onclick="this.parentElement.style.display='none';">&times;</span>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <input type="text" style="width:1000px;height: 2.5em;" name="filter" id="filter" placeholder="Search user" autocomplete="off" />
+        <button id="openModalBtn" class="btn btn-info">
+            <i class="fa fa-plus"></i> Add user
+        </button>
+    </div>
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            {% include 'add_user.html' %}
+        </div>
+    </div>
+    <h1>Users</h1>
+    <div class="table-responsive">
+        <table style="margin-top: 20px;" class="table table-bordered">
+            <caption>Users</caption>
+            <thead>
+                <tr>
+                    <th>User Name</th>
+                    <th>Name</th>
+                    <th>Level</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>
+    {% if user.level == 1 %}
+        {{ 'admin' }}
+    {% elif user.level == 2 %}
+        {{ 'pharmacist' }}
+    {% elif user.level == 3 %}
+        {{ 'cashier' }}
+    {% else %}
+        {{ 'not assigned' }}
+    {% endif %}
+</td>
+               
+<td>
+    <div class="action-buttons">
+        <a href="{{ url_for('edit_user', user_id=user.id) }}"><button class="btn btn-info">Edit</button></a>
+        <form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" style="display: inline;">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</td> 
+                
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% include 'footer.html' %}
+<script>
+    // Get modal element
+    var modal = document.getElementById("addUserModal");
+    // Get open modal button
+    var openModalBtn = document.getElementById("openModalBtn");
+    // Get close button
+    var closeBtn = document.getElementsByClassName("close")[0];
+
+    // Listen for open click
+    openModalBtn.onclick = function() {
+        modal.style.display = "block";
+    }
+
+    // Listen for close click
+    closeBtn.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // Listen for outside click
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+{% endblock %}

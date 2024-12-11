@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Products</title>
+{% endblock %}
+
+{% block body %}
+<style type="text/css">
+      /* Define custom styles for th-danger class */
+        .th.th-danger {
+            color: red;
+        }
+       /* Style for buttons with icon */
+        .btn-with-icon i {
+            
+            display: inline-block; /* Ensure icon stays inline with text */
+        }
+        #addProductModal{
+            width: 30%;
+            margin-left: 35%;
+        }
+</style>
+<style>
+    #save {
+        display: none; /* Hide the save button initially */
+    }
+</style>
+
+    <div class="container" style="margin-top: 100px;">
+        <input type="text" style="width:1000px;height: 2.5em;" name="filter" value="" id="filter" placeholder="Search Product..." autocomplete="off" />
+
+    <button id="openModalBtn" class="btn btn-info">
+  <i class="fa fa-plus"></i> Add Product
+</button>
+
+<!-- Modal -->
+<div id="addProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" style="font-size: 48px;color: red">&times;</span>
+        <!-- Include your add_product.html form here -->
+        {% include 'add_product.html' %}
+    </div>
+</div>
+
+<br><br>
+        <h1>Products</h1>
+<table class="table table-bordered" id="products" data-responsive="table" style="text-align: left;">
+  <thead>
+    <tr>
+      <th>Generic Name</th>
+      <th>Product Name</th>
+      <th>Quantity</th>
+      <th>Buying Price</th>
+      <th>Markup (%)</th>
+      <th>Price</th>
+      <th>Reorder Level</th>
+      <th>Value</th>
+      <th>Edit</th>
+      <th class="th th-danger">Delete</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for result in results.items %}
+      <tr>
+        <form action="/update_product" method="POST">
+          <input type="hidden" name="product_id[]" value="{{ result.product_id }}">
+
+          <td><span class="original-content">{{ result.gen_name }}</span>
+            <input type="text" class="edit-input" name="gen_name[]" value="{{ result.gen_name }}" style="display: none;" /></td>
+          <td><span class="original-content">{{ result.product_name }}</span>
+            <input type="text" class="edit-input" name="product_name[]" value="{{ result.product_name }}" style="display: none;" /></td>
+          <td>
+            <span class="original-content">{{ result.qty }}</span>
+            <input type="number" class="edit-input" name="qty[]" value="{{ result.qty }}" min="0" style="display: none;" />
+          </td>
+          <td>
+            <span class="original-content">{{ "%.2f"|format(result.o_price) }}</span>
+            <input type="number" class="edit-input" name="o_price[]" value="{{ result.o_price }}" min="0" step="0.01" style="display: none;" />
+          </td>
+          <td>
+            <span class="">{{ "%.2f"|format(result.markup * 100) }}</span>   </td>
+          <td><span class="original-content">{{ "%.2f"|format(result.o_price * result.markup)|float|int }}</span>
+            <input type="number" class="edit-input" name="price[]" value="{{ "%.2f"|format(result.o_price * result.markup)|float|int }}" min="0" style="display: none;" /></td>
+          <td>
+            <span class="original-content">{{ result.level }}</span>
+            <input type="number" class="edit-input" name="level[]" value="{{ result.level }}" min="0" style="display: none;" />
+          </td>
+
+          <td>{{ "%.2f"|format(result.o_price * result.qty)|float|int }}</td>
+          <td>
+      <button type="submit" id="save" class="edit-input save-button"><i class="fa fa-save"></i>Save Changes</button>
+      <button type="button" class="edit-btn btn-with-icon"><i class="fa fa-edit"></i>Edit</button>
+    </td>
+  </form>
+        <td>
+          <button class="delete-btn btn-with-icon"><i class="fa fa-trash"></i>Delete</button>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+           <tr>
+    <th colspan="7">total:</th> <!-- Merge 7 cells to the left -->
+    <th>{{ "{:,.2f}".format(total_value) }}</th> <!-- Last th -->
+</tr>
+            </tbody>
+        </table>
+       
+        
+        <nav aria-label="Page navigation" align="center">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not results.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('drugs', page=results.prev_num) }}" {% if not results.has_prev %}tabindex="-1" aria-disabled="true"{% endif %}>Previous</a>
+                </li>
+                {% for page_num in range(1, results.pages + 1) %}
+                    <li class="page-item {% if results.page == page_num %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('drugs', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% endfor %}
+                <li class="page-item {% if not results.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('drugs', page=results.next_num) }}" {% if not results.has_next %}tabindex="-1" aria-disabled="true"{% endif %}>Next</a>
+                </li>
+            </ul>
+        </nav><div class="container" style="margin-bottom: 120px;">       
+        <p align="center">Page {{ results.page }} of {{ results.pages }}, Total Products: {{ total_products }}</p></div> 
+    </div> 
+<script src="{{ url_for('static', filename='js/products.js') }}"></script>
+
+
+   {%include 'footer.html'%}
+{% endblock %}
