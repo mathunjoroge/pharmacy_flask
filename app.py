@@ -31,6 +31,12 @@ db.init_app(app)
 # Create tables if they don't exist
 with app.app_context():
     db.create_all()
+@app.template_filter('capitalize_first')
+def capitalize_first(value):
+    if isinstance(value, str) and value:
+        return value[0].upper() + value[1:]
+    return value
+
 
 # Helper functions
 def login_required(f):
@@ -64,9 +70,10 @@ def home():
     pharmacy_details = PharmacyDetails.query.first()
     pharmacy_name = pharmacy_details.pharmacy_name if pharmacy_details else ""
     username = session.get('username')
+    name = session.get('name')
     level = session.get('level')
     invoice_number = generate_random_number()
-    return render_template('home.html', pharmacy_name=pharmacy_name, username=username, level=level, invoice_number=invoice_number)
+    return render_template('home.html', pharmacy_name=pharmacy_name, username=username,name=name,level=level, invoice_number=invoice_number)
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -77,6 +84,7 @@ def login():
         user = User.query.filter_by(username=username, password=double_md5_password).first()
         if user:
             session['username'] = user.username
+            session['name'] = user.name
             session['level'] = user.level
             return redirect(url_for('home'))
         else:
@@ -88,12 +96,13 @@ def login():
 @login_required
 def sales():
     username = session.get('username')
+    name = session.get('name')
     level = session.get('level')
     products = get_products_with_quantity()
     invoice_number = request.args.get('invoice')
     sales_order_details = get_sales_order_details(invoice_number)
     total_amount = get_total_amount_by_invoice(invoice_number)
-    return render_template('sales.html', username=username, level=level, products=products, invoice=invoice_number, sales_order_details=sales_order_details, total_amount=total_amount)
+    return render_template('sales.html', username=username,  name=name,level=level, products=products, invoice=invoice_number, sales_order_details=sales_order_details, total_amount=total_amount)
 
 @app.route('/save_sales', methods=['POST'])
 @login_required
@@ -192,6 +201,7 @@ def delete_sale():
 @login_required
 def drugs():
     username = session.get('username')
+    name = session.get('name')
     level = session.get('level')
     page = request.args.get('page', 1, type=int)
     per_page = 30
@@ -207,7 +217,7 @@ def drugs():
     # Calculate total value
     total_value = db.session.query(func.sum(Product.o_price * Product.qty).label('total_value')).scalar()
     
-    return render_template('drugs.html', results=results, username=username, level=level, total_value=total_value)
+    return render_template('drugs.html', results=results, username=username,name=name, level=level, total_value=total_value)
 
 @app.route('/add_product')
 @login_required
@@ -324,9 +334,10 @@ def save_changes():
 @login_required
 def customers():
     username = session.get('username')
+    name = session.get('name')
     level = session.get('level')
     customers = Customer.query.all()
-    return render_template('customers.html', username=username, level=level,customers=customers)
+    return render_template('customers.html', username=username,name=name, level=level,customers=customers)
 #add customer
 @app.route('/save_customer', methods=['POST'])
 def save_customer():
@@ -352,11 +363,12 @@ def save_customer():
 def suppliers():
     username = session.get('username')
     level = session.get('level')
+    name = session.get('name')
     
     # Get supplier data
     suppliers = Supplier.query.all()
     
-    return render_template('suppliers.html', username=username, level=level, suppliers=suppliers)
+    return render_template('suppliers.html', username=username, name=name,level=level, suppliers=suppliers)
 
 
 
@@ -427,6 +439,7 @@ def purchases():
     try:
         username = session.get('username')
         level = session.get('level')
+        name = session.get('name')
         invoice = request.args.get('invoice')
 
         if not invoice:
@@ -492,7 +505,8 @@ def purchases():
             purchase_data=purchase_data, 
             total_amount=total_amount, 
             current_year=current_year, 
-            current_month=current_month
+            current_month=current_month,
+            name=name
         )
     
     except Exception as e:
@@ -562,15 +576,17 @@ def delete_purchase():
 @login_required
 def wholesale():
     username = session.get('username')
+    name = session.get('name')
     level = session.get('level')
-    return render_template('wholesale.html', username=username, level=level)
+    return render_template('wholesale.html', username=username, name=name,level=level)
 
 @app.route('/settings')
 @login_required
 def settings():
     username = session.get('username')
+    name = session.get('name')
     level = session.get('level')
-    return render_template('settings.html', username=username, level=level)
+    return render_template('settings.html', username=username, name=name,level=level)
 
 @app.route('/admin')
 @login_required
@@ -583,16 +599,18 @@ def admin():
 @login_required
 def inventory():
     username = session.get('username')
+    name = session.get('name')
     level = session.get('level')
-    return render_template('inventory.html', username=username, level=level)
+    return render_template('inventory.html', username=username,name=name, level=level)
 #users
 @app.route('/users')
 @login_required
 def users():
     username = session.get('username')
     level = session.get('level')
+    name = session.get('name')
     users = User.query.all()
-    return render_template('users.html', users=users, username=username, level=level)
+    return render_template('users.html', users=users,name=name, username=username, level=level)
 #register user
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -644,8 +662,9 @@ def register():
 @login_required
 def expenses():
     username = session.get('username')
+    name = session.get('name')
     level = session.get('level')
-    return render_template('expenses.html', username=username, level=level)
+    return render_template('expenses.html', username=username, name=name,level=level)
 
 
 # Edit User Route
@@ -699,3 +718,4 @@ def delete_user(user_id):
 
 if __name__ == "__main__":
     app.run(debug=True)
+    app.run(host="192.168.100.70", port=5000)

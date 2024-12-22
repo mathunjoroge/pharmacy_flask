@@ -34,7 +34,7 @@
                     <img src="{{ url_for('static', filename='img/logo.PNG') }}" style="height:50px;">
                 </a>
                 <ul class="nav pull-right" id="right" style="font-size: 25px;">
-                    <i class="fa fa-user-check"></i> Welcome:<strong> {{ username }}</strong>
+                    <i class="fa fa-user-check"></i> Welcome: <strong>{{ name | capitalize }}</strong>
                     <a href="/logout"><font color="red"><i class="fa fa-power-off"></i> </font> Log Out</a>
                 </ul>
             </div>
