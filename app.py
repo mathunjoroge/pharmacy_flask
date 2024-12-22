@@ -128,36 +128,42 @@ def save_sales():
 def save_sale():
     try:
         # Extract data from the form
-        transaction_id = request.form['transaction_id']
-        qty = int(request.form['qty'])
-        price = float(request.form['price'])
-        batch = request.form['batch']
-        product_id = request.form['product_id']
+        transaction_ids = request.form.getlist('transaction_id')
+        qtys = request.form.getlist('qty')
+        prices = request.form.getlist('price')
+        batches = request.form.getlist('batch')
+        product_ids = request.form.getlist('product_id')
 
-        # Update the sale order
-        sale_order = SaleOrder.query.get(transaction_id)
-        sale_order.qty = qty
-        sale_order.price = price
+        # Update products and batches
+        for i in range(len(transaction_ids)):
+            product_id = product_ids[i]
+            qty = int(qtys[i])
+            batch = batches[i]
 
-        # Update product quantity
-        product = Product.query.get(product_id)
-        product.qty -= qty
+            # Update product quantity
+            product = Product.query.get(product_id)
+            if product:
+                product.qty -= qty
 
-        # Update batch quantity
-        batch_item = Batch.query.filter_by(product_id=product_id, batch_no=batch).first()
-        if batch_item:
-            batch_item.quantity -= qty
+            # Update batch quantity
+            batch_item = Batch.query.filter_by(product_id=product_id, batch_no=batch).first()
+            if batch_item:
+                batch_item.quantity -= qty
 
         # Commit changes to the database
         db.session.commit()
 
+        # Redirect to the sales page with a message and a new invoice number
         flash('Sale has been saved successfully!', 'success')
-        return redirect(url_for('sales', invoice=request.args.get('invoice')))
+        invoice_number = request.args.get('invoice')
+        return redirect(url_for('sales', invoice=invoice_number)) 
+
     except Exception as e:
+        # Log the actual error and rollback
         app.logger.error(f"Error saving sale: {e}")
         db.session.rollback()
-        flash('An error occurred while saving the sale.', 'danger')
-        return redirect(url_for('sales', invoice=request.args.get('invoice')))
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/delete_sale', methods=['GET'])
 @login_required
 def delete_sale():
@@ -652,28 +658,24 @@ def edit_user(user_id):
 # Save Edit User Route
 # Save Edit User Route
 @app.route('/save_edit_user/<int:user_id>', methods=['POST'])
+@login_required
 def save_edit_user(user_id):
-    user = User.query.get(user_id)
-    user.username = request.form['username']
-    user.name = request.form['name']
-    user.level = request.form['level']
-
-    password = request.form.get('password')
-    conf_password = request.form.get('confpassword')
-
-    if password:
-        if password != conf_password:
-            flash("Passwords do not match!", "danger")
-            return redirect(url_for('users'))
-
-        user.password = md5_hash(md5_hash(password))
-
-    db.session.commit()
-
-    flash("User updated successfully!", "success")
+    user = User.query.get_or_404(user_id)
+    try:
+        user.username = request.form['username']
+        user.name = request.form['name']
+        user.level = request.form['level']
+        
+        db.session.commit()
+        flash('User updated successfully!', 'success')
+    except IntegrityError:
+        db.session.rollback()
+        flash('Error updating user. Username might already be taken.', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An unexpected error occurred: {str(e)}', 'danger')
+    
     return redirect(url_for('users'))
-
-
 
 # Delete User Route
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
