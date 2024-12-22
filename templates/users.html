@@ -1,16 +1,12 @@
 {% extends 'base.html' %}
 
 {% block head %}
-    <title>Users</title>
-{% endblock %}
-
-{% block body %}
+<title>Users</title>
 <style>
     .container {
         overflow-x: auto;
         margin-top: 5%;
     }
-    /* Modal Styles */
     .modal {
         display: none;
         position: fixed;
@@ -60,51 +56,45 @@
         line-height: 20px;
         cursor: pointer;
     }
-    .alert-dismissible .close {
-        position: relative;
-        top: -2px;
-        right: -21px;
-        color: inherit;
-    }
-    .alert-success {
-        color: green;
-    }
-    .action-buttons {
-        display: flex;
-        gap: 10px;
-    }
 </style>
+{% endblock %}
+
+{% block body %}
+<div class="container" style="margin-top: 100px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-dismissible {{ 'alert-' ~ category }}">
+                <span class="close" onclick="this.parentElement.style.display='none';">&times;</span>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
 
 <div class="container">
-    <div style="margin-top: 100px;">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-dismissible {{ 'alert-' ~ category }} {% if message == 'User registered successfully!' %} success {% endif %}">
-                        <span class="close" onclick="this.parentElement.style.display='none';">&times;</span>
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <input type="text" style="width:1000px;height: 2.5em;" name="filter" id="filter" placeholder="Search user" autocomplete="off" />
-        <button id="openModalBtn" class="btn btn-info">
-            <i class="fa fa-plus"></i> Add user
-        </button>
+    <input type="text" style="width:1000px;height: 2.5em;" name="filter" id="filter" placeholder="Search user" autocomplete="off" />
+    <button id="openAddModalBtn" class="btn btn-info">
+        <i class="fa fa-plus"></i> Add User
+    </button>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        {% include 'add_user.html' %}
     </div>
-    <div id="addUserModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            {% include 'add_user.html' %}
-        </div>
-    </div>
+</div>
+
+<div class="container">
     <h1>Users</h1>
     <div class="table-responsive">
         <table style="margin-top: 20px;" class="table table-bordered">
-            <caption>Users</caption>
             <thead>
                 <tr>
-                    <th>User Name</th>
+                    <th>Username</th>
                     <th>Name</th>
                     <th>Level</th>
                     <th>Action</th>
@@ -116,57 +106,143 @@
                     <td>{{ user.username }}</td>
                     <td>{{ user.name }}</td>
                     <td>
-    {% if user.level == 1 %}
-        {{ 'admin' }}
-    {% elif user.level == 2 %}
-        {{ 'pharmacist' }}
-    {% elif user.level == 3 %}
-        {{ 'cashier' }}
-    {% else %}
-        {{ 'not assigned' }}
-    {% endif %}
-</td>
-               
-<td>
-    <div class="action-buttons">
-        <a href="{{ url_for('edit_user', user_id=user.id) }}"><button class="btn btn-info">Edit</button></a>
-        <form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" style="display: inline;">
-            <button type="submit" class="btn btn-danger">Delete</button>
-        </form>
-    </div>
-</td> 
-                
+                        {% if user.level == 1 %}
+                            Admin
+                        {% elif user.level == 2 %}
+                            Pharmacist
+                        {% elif user.level == 3 %}
+                            Cashier
+                        {% else %}
+                            Not assigned
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button 
+                            type="button" 
+                            class="btn btn-sm btn-warning edit-btn" 
+                            data-id="{{ user.id }}" 
+                            data-username="{{ user.username }}" 
+                            data-name="{{ user.name }}" 
+                            data-level="{{ user.level }}">
+                            Edit
+                        </button>
+
+                        <form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{% include 'footer.html' %}
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <form method="post" id="editUserForm">
+            <div class="modal-header">
+                <h5>Edit User</h5>
+            </div>
+            <div class="modal-body">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" class="form-control" required>
+
+                <label for="name" class="mt-3">Name</label>
+                <input type="text" name="name" id="name" class="form-control" required>
+
+                <label for="password" class="mt-3">Password</label>
+                <input type="password" name="password" id="password" class="form-control">
+
+                <label for="confpassword" class="mt-3">Confirm Password</label>
+                <input type="password" name="confpassword" id="confpassword" class="form-control">
+                <span class="error text-danger" id="error-message"></span>
+
+                <label for="level" class="mt-3">Level</label>
+                <select name="level" id="level" class="form-control" required>
+                    <option value="1">Admin</option>
+                    <option value="2">Pharmacist</option>
+                    <option value="3">Cashier</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close">Close</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    // Get modal element
-    var modal = document.getElementById("addUserModal");
-    // Get open modal button
-    var openModalBtn = document.getElementById("openModalBtn");
-    // Get close button
-    var closeBtn = document.getElementsByClassName("close")[0];
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add User Modal
+        const addUserModal = document.getElementById("addUserModal");
+        const openAddModalBtn = document.getElementById("openAddModalBtn");
+        const closeAddModalBtn = addUserModal.querySelector(".close");
 
-    // Listen for open click
-    openModalBtn.onclick = function() {
-        modal.style.display = "block";
-    }
+        openAddModalBtn.onclick = function () {
+            addUserModal.style.display = "block";
+        };
 
-    // Listen for close click
-    closeBtn.onclick = function() {
-        modal.style.display = "none";
-    }
+        closeAddModalBtn.onclick = function () {
+            addUserModal.style.display = "none";
+        };
 
-    // Listen for outside click
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
+        window.onclick = function (event) {
+            if (event.target === addUserModal) {
+                addUserModal.style.display = "none";
+            }
+        };
+
+        // Edit User Modal
+        const editUserModal = document.getElementById("editUserModal");
+        const editButtons = document.querySelectorAll(".edit-btn");
+        const closeEditModalBtn = editUserModal.querySelector(".close");
+        const editForm = editUserModal.querySelector("form");
+
+        editButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const userId = this.getAttribute("data-id");
+                const username = this.getAttribute("data-username");
+                const name = this.getAttribute("data-name");
+                const level = this.getAttribute("data-level");
+
+                // Set the action URL dynamically
+                editForm.action = `/save_edit_user/${userId}`;
+                editForm.querySelector('#username').value = username;
+                editForm.querySelector('#name').value = name;
+                editForm.querySelector('#level').value = level;
+
+                editUserModal.style.display = "block";
+            });
+        });
+
+        closeEditModalBtn.onclick = function () {
+            editUserModal.style.display = "none";
+        };
+
+        window.onclick = function (event) {
+            if (event.target === editUserModal) {
+                editUserModal.style.display = "none";
+            }
+        };
+
+        // Password Validation
+        editForm.addEventListener('submit', function (event) {
+            const password = document.getElementById('password').value;
+            const confPassword = document.getElementById('confpassword').value;
+            const errorMessage = document.getElementById('error-message');
+
+            if (password && confPassword && password !== confPassword) {
+                event.preventDefault(); // Prevent form submission
+                errorMessage.textContent = 'Passwords do not match.';
+            } else {
+                errorMessage.textContent = ''; // Clear error message
+            }
+        });
+    });
 </script>
 
 {% endblock %}

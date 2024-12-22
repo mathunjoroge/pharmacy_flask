@@ -20,8 +20,7 @@
         width: 100%;
         height: 100%;
         overflow: auto;
-        background-color: rgb(0,0,0);
-        background-color: rgba(0,0,0,0.4);
+        background-color: rgba(0, 0, 0, 0.4);
         padding-top: 60px;
     }
     .modal-content {
@@ -43,31 +42,13 @@
         text-decoration: none;
         cursor: pointer;
     }
-            .alert {
-            padding: 10px;
-            background-color: #f44336;
-            color: white;
-            margin-bottom: 15px;
-            border: 1px solid transparent;
-            border-radius: 4px;
-            position: relative;
-        }
-        .alert-dismissible .close {
-            position: absolute;
-            top: 0;
-            right: 10px;
-            color: white;
-            font-size: 20px;
-            line-height: 20px;
-            cursor: pointer;
-        }
 </style>
 {% endblock %}
 
 {% block body %}
 
-        <div class="container" style="margin-top: 100px;">
-        {% with messages = get_flashed_messages(with_categories=true) %}
+<div class="container" style="margin-top: 100px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
             <div class="alert alert-dismissible {{ 'alert-success' if category == 'success' else 'alert-danger' }}">
@@ -76,16 +57,17 @@
             </div>
         {% endfor %}
     {% endif %}
-{% endwith %}
+    {% endwith %}
 </div>
+
 <div class="container">
     <input type="text" style="width:1000px;height: 2.5em;" name="filter" id="filter" placeholder="Search supplier" autocomplete="off" />
-    <button id="openModalBtn" class="btn btn-info">
-        <i class="fa fa-plus"></i> Add supplier
+    <button id="openAddModalBtn" class="btn btn-info">
+        <i class="fa fa-plus"></i> Add Supplier
     </button>
 </div>
 
-<!-- Modal -->
+<!-- Add Supplier Modal -->
 <div id="addSupplierModal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
@@ -95,50 +77,130 @@
 
 <div class="container mt-4">
     <table class="table table-bordered">
-        <tr>
-            <th>Supplier Name</th>
-            <th>Supplier Address</th>
-            <th>Supplier Contact</th>
-            <th>Contact Person</th>
-            <th>Action</th>
-        </tr>
-        {% for supplier in suppliers %}
-        <tr>
-            <td>{{ supplier.supplier_name }}</td>
-            <td>{{ supplier.supplier_address }}</td>
-            <td>{{ supplier.supplier_contact }}</td>
-            <td>{{ supplier.contact_person }}</td>
-            <td>edit/delete</td>
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr>
+                <th>Supplier Name</th>
+                <th>Supplier Address</th>
+                <th>Supplier Contact</th>
+                <th>Contact Person</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for supplier in suppliers %}
+            <tr>
+                <td>{{ supplier.supplier_name }}</td>
+                <td>{{ supplier.supplier_address }}</td>
+                <td>{{ supplier.supplier_contact }}</td>
+                <td>{{ supplier.contact_person }}</td>
+                <td>
+                    <!-- Edit Button -->
+                    <button 
+                        type="button" 
+                        class="btn btn-sm btn-warning edit-btn" 
+                        data-id="{{ supplier.supplier_id }}" 
+                        data-name="{{ supplier.supplier_name }}" 
+                        data-address="{{ supplier.supplier_address }}" 
+                        data-contact="{{ supplier.supplier_contact }}" 
+                        data-person="{{ supplier.contact_person }}">
+                        Edit
+                    </button>
+
+                    <!-- Delete Form -->
+                    <form action="{{ url_for('delete_supplier', supplier_id=supplier.supplier_id) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this supplier?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 </div>
 
-{% include 'footer.html' %}
+<!-- Edit Supplier Modal -->
+<div id="editSupplierModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <form method="post">
+            <div class="modal-header">
+                <h5>Edit Supplier</h5>
+            </div>
+            <div class="modal-body">
+                <label for="supplier_name">Supplier Name</label>
+                <input type="text" name="supplier_name" id="supplier_name" class="form-control" required>
+
+                <label for="supplier_address" class="mt-3">Address</label>
+                <input type="text" name="supplier_address" id="supplier_address" class="form-control" required>
+
+                <label for="supplier_contact" class="mt-3">Contact</label>
+                <input type="text" name="supplier_contact" id="supplier_contact" class="form-control" required>
+
+                <label for="contact_person" class="mt-3">Contact Person</label>
+                <input type="text" name="contact_person" id="contact_person" class="form-control" required>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close">Close</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
-    // Get modal element
-    var modal = document.getElementById("addSupplierModal");
-    // Get open modal button
-    var openModalBtn = document.getElementById("openModalBtn");
-    // Get close button
-    var closeBtn = document.getElementsByClassName("close")[0];
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add Supplier Modal
+        const addSupplierModal = document.getElementById("addSupplierModal");
+        const openAddModalBtn = document.getElementById("openAddModalBtn");
+        const closeAddModalBtn = addSupplierModal.querySelector(".close");
 
-    // Listen for open click
-    openModalBtn.onclick = function() {
-        modal.style.display = "block";
-    }
+        openAddModalBtn.onclick = function () {
+            addSupplierModal.style.display = "block";
+        };
 
-    // Listen for close click
-    closeBtn.onclick = function() {
-        modal.style.display = "none";
-    }
+        closeAddModalBtn.onclick = function () {
+            addSupplierModal.style.display = "none";
+        };
 
-    // Listen for outside click
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
+        window.onclick = function (event) {
+            if (event.target === addSupplierModal) {
+                addSupplierModal.style.display = "none";
+            }
+        };
+
+        // Edit Supplier Modal
+        const editSupplierModal = document.getElementById("editSupplierModal");
+        const editButtons = document.querySelectorAll(".edit-btn");
+        const closeEditModalBtn = editSupplierModal.querySelector(".close");
+        const editForm = editSupplierModal.querySelector("form");
+
+        editButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const supplierId = this.getAttribute("data-id");
+                const supplierName = this.getAttribute("data-name");
+                const supplierAddress = this.getAttribute("data-address");
+                const supplierContact = this.getAttribute("data-contact");
+                const contactPerson = this.getAttribute("data-person");
+
+                editForm.action = `/edit_supplier/${supplierId}`;
+                editForm.querySelector('[name="supplier_name"]').value = supplierName;
+                editForm.querySelector('[name="supplier_address"]').value = supplierAddress;
+                editForm.querySelector('[name="supplier_contact"]').value = supplierContact;
+                editForm.querySelector('[name="contact_person"]').value = contactPerson;
+
+                editSupplierModal.style.display = "block";
+            });
+        });
+
+        closeEditModalBtn.onclick = function () {
+            editSupplierModal.style.display = "none";
+        };
+
+        window.onclick = function (event) {
+            if (event.target === editSupplierModal) {
+                editSupplierModal.style.display = "none";
+            }
+        };
+    });
 </script>
+
 {% endblock %}

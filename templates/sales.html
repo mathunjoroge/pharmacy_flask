@@ -54,7 +54,7 @@
                     <div class="alert alert-success alert-dismissible" role="alert">
                         {{ message }}
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                            <span aria-hidden="true">×</span>
                         </button>
                     </div>
                 {% endfor %}
@@ -113,21 +113,18 @@
         <tbody>
             {% for sale in sales_order_details %}
             <tr>
-                <form action="/save_sale" method="post">
-                    <input type="hidden" name="batch" value="{{ sale.batch }}">
-                    <input type="hidden" name="transaction_id" value="{{ sale.transaction_id }}">
-                    <input type="hidden" name="product_id" value="{{ sale.product_id }}">
-                    <td>{{ sale.gen_name }}</td>
-                    <td>{{ sale.product_name }}</td>
-                    <td><input type="number" class="input-small" name="qty" value="{{ sale.qty }}" required></td>
-                    <td><input type="number" class="input-small" name="price" value="{{ sale.price }}" required></td>
-                    <td>{{ sale.amount }}</td>
-                    <td>
-                        <a href="delete_sale?transaction_id={{ sale.transaction_id }}&invoice={{ invoice }}">
-                            <button class="btn btn-danger" type="button">Delete</button>
-                        </a>
-                    </td>
-                </form>
+                <td>{{ sale.gen_name }}</td>
+                <td>{{ sale.product_name }}</td>
+                <td><input type="number" class="input-small" name="qty" value="{{ sale.qty }}" required></td>
+                <td><input type="number" class="input-small" name="price" value="{{ sale.price }}" required></td>
+                <td>{{ sale.amount }}</td>
+                <td>
+                    <form action="/delete_sale" method="post" style="display:inline;">
+                        <input type="hidden" name="transaction_id" value="{{ sale.transaction_id }}">
+                        <input type="hidden" name="invoice" value="{{ invoice }}">
+                        <button class="btn btn-danger" type="submit">Delete</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
             <tr>
@@ -142,7 +139,9 @@
 
     {% if total_amount %}
     <div class="container">
-        <button class="btn btn-success btn-large btn-block" type="submit">Save Sale</button>
+        <form action="/save_sale" method="post">
+            <button class="btn btn-success btn-large btn-block" type="submit">Save Sale</button>
+        </form>
     </div>
     {% endif %}
 </div>
@@ -168,7 +167,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var select = document.getElementById('select');
+        var select = document.getElementById('product_select');
         select.addEventListener('change', function() {
             this.classList.remove('select-placeholder');
         });

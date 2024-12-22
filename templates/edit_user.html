@@ -1,12 +1,38 @@
-<form method="post">
+<form method="post" action="{{ url_for('save_edit_user', user_id=user.id) }}" id="editUserForm">
     <label for="username">Username:</label>
-    <input type="text" id="username" name="username" value="{{ user.username }}" required>
+    <input type="text" id="username" name="username" required>
     <br>
     <label for="name">Name:</label>
-    <input type="text" id="name" name="name" value="{{ user.name }}" required>
+    <input type="text" id="name" name="name" required>
+    <br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password">
+    <br>
+    <label for="confpassword">Confirm Password:</label>
+    <input type="password" id="confpassword" name="confpassword">
+    <span class="error" id="error-message"></span>
     <br>
     <label for="level">Level:</label>
-    <input type="number" id="level" name="level" value="{{ user.level }}" required>
+    <select id="level" name="level" required>
+        <option value="1">Admin</option>
+        <option value="2">Pharmacist</option>
+        <option value="3">Cashier</option>
+    </select>
     <br>
     <button type="submit">Save</button>
 </form>
+
+<script>
+    document.getElementById('editUserForm').addEventListener('submit', function (event) {
+        const password = document.getElementById('password').value;
+        const confPassword = document.getElementById('confpassword').value;
+        const errorMessage = document.getElementById('error-message');
+
+        if (password && password !== confPassword) {
+            event.preventDefault();
+            errorMessage.textContent = 'Passwords do not match.';
+        } else {
+            errorMessage.textContent = '';
+        }
+    });
+</script>

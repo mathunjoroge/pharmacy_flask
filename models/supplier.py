@@ -8,3 +8,4 @@ class Supplier(db.Model):
     supplier_address = db.Column(db.String(255), nullable=False)
     supplier_contact = db.Column(db.String(255), nullable=False)
     contact_person = db.Column(db.String(255), nullable=False)
+    

@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify,g
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify,g,abort
 from sqlalchemy import func
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
+import logging
 import random
 import hashlib
 from functools import wraps
@@ -127,42 +128,36 @@ def save_sales():
 def save_sale():
     try:
         # Extract data from the form
-        transaction_ids = request.form.getlist('transaction_id')
-        qtys = request.form.getlist('qty')
-        prices = request.form.getlist('price')
-        batches = request.form.getlist('batch')
-        product_ids = request.form.getlist('product_id')
+        transaction_id = request.form['transaction_id']
+        qty = int(request.form['qty'])
+        price = float(request.form['price'])
+        batch = request.form['batch']
+        product_id = request.form['product_id']
 
-        # Update products and batches
-        for i in range(len(transaction_ids)):
-            product_id = product_ids[i]
-            qty = int(qtys[i])
-            batch = batches[i]
+        # Update the sale order
+        sale_order = SaleOrder.query.get(transaction_id)
+        sale_order.qty = qty
+        sale_order.price = price
 
-            # Update product quantity
-            product = Product.query.get(product_id)
-            if product:
-                product.qty -= qty
+        # Update product quantity
+        product = Product.query.get(product_id)
+        product.qty -= qty
 
-            # Update batch quantity
-            batch_item = Batch.query.filter_by(product_id=product_id, batch_no=batch).first()
-            if batch_item:
-                batch_item.quantity -= qty
+        # Update batch quantity
+        batch_item = Batch.query.filter_by(product_id=product_id, batch_no=batch).first()
+        if batch_item:
+            batch_item.quantity -= qty
 
         # Commit changes to the database
         db.session.commit()
 
-        # Redirect to the sales page with a message and a new invoice number
         flash('Sale has been saved successfully!', 'success')
-        new_invoice_number = generate_random_number()
-        return redirect(url_for('sales', invoice=new_invoice_number)) 
-
+        return redirect(url_for('sales', invoice=request.args.get('invoice')))
     except Exception as e:
-        # Log the actual error and rollback
         app.logger.error(f"Error saving sale: {e}")
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
+        flash('An error occurred while saving the sale.', 'danger')
+        return redirect(url_for('sales', invoice=request.args.get('invoice')))
 @app.route('/delete_sale', methods=['GET'])
 @login_required
 def delete_sale():
@@ -386,6 +381,39 @@ def save_supplier():
     
     # Redirect back to the suppliers page
     return redirect(url_for('suppliers'))
+
+@app.route('/edit_supplier/<int:supplier_id>', methods=['GET', 'POST'])
+@login_required
+def edit_supplier(supplier_id):
+    supplier = Supplier.query.get_or_404(supplier_id)
+    
+    if request.method == 'POST':
+        supplier.supplier_name = request.form.get('supplier_name', supplier.supplier_name)
+        supplier.supplier_address = request.form.get('supplier_address', supplier.supplier_address)
+        supplier.supplier_contact = request.form.get('supplier_contact', supplier.supplier_contact)
+        supplier.contact_person = request.form.get('contact_person', supplier.contact_person)
+        db.session.commit()
+        flash("Supplier updated successfully.", "success")
+        return redirect(url_for('suppliers'))
+
+    return render_template('edit_supplier.html', supplier=supplier)
+
+@app.route('/delete_supplier/<int:supplier_id>', methods=['POST'])
+@login_required
+def delete_supplier(supplier_id):
+    supplier = Supplier.query.get_or_404(supplier_id)
+    db.session.delete(supplier)
+    db.session.commit()
+    flash("Supplier deleted successfully.", "success")
+    return redirect(url_for('suppliers'))
+
+# Placeholder for the suppliers route or page where all suppliers are listed
+@app.route('/suppliers')
+def suppliers_list():
+    return render_template('suppliers.html', suppliers=suppliers)
+
+
+
 
 @app.route('/purchases')
 @login_required
@@ -615,21 +643,37 @@ def expenses():
 
 
 # Edit User Route
-@app.route('/edit/<int:user_id>', methods=['GET', 'POST'])
+@app.route('/edit/<int:user_id>', methods=['GET'])
+@login_required
 def edit_user(user_id):
     user = User.query.get_or_404(user_id)
-    if request.method == 'POST':
-        user.username = request.form['username']
-        user.name = request.form['name']
-        user.level = request.form['level']
-        try:
-            db.session.commit()
-            flash('User updated successfully!', 'success')
-        except IntegrityError:
-            db.session.rollback()
-            flash('Error updating user. Please try again.', 'danger')
-        return redirect(url_for('users'))
     return render_template('edit_user.html', user=user)
+
+# Save Edit User Route
+# Save Edit User Route
+@app.route('/save_edit_user/<int:user_id>', methods=['POST'])
+def save_edit_user(user_id):
+    user = User.query.get(user_id)
+    user.username = request.form['username']
+    user.name = request.form['name']
+    user.level = request.form['level']
+
+    password = request.form.get('password')
+    conf_password = request.form.get('confpassword')
+
+    if password:
+        if password != conf_password:
+            flash("Passwords do not match!", "danger")
+            return redirect(url_for('users'))
+
+        user.password = md5_hash(md5_hash(password))
+
+    db.session.commit()
+
+    flash("User updated successfully!", "success")
+    return redirect(url_for('users'))
+
+
 
 # Delete User Route
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
@@ -649,9 +693,6 @@ def delete_user(user_id):
         flash(f'Error deleting user: {str(e)}', 'danger')
 
     return redirect(url_for('users'))
-
-
-
 
 
 if __name__ == "__main__":
